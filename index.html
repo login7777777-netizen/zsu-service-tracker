@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>До Перемоги!</title>
+    <style>
+        /* Стилі для фону та загального вигляду */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            background-color: #000;
+            /* Місце для фону: прапор, що розвивається, та герб */
+            /* Це може бути велике фонове зображення або анімований елемент */
+            background-image: url('images/ukrainian-flag-background.jpg'); /* ЗАМІНИТИ НА РЕАЛЬНЕ ЗОБРАЖЕННЯ АБО АНІМАЦІЮ */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Стилі для основної сітки (ліворуч/праворуч) */
+        .content-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-grow: 1;
+            padding: 50px 20px;
+            /* Напівпрозорий фон для кращої читабельності */
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Стилі для лівої колонки */
+        .left-side {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        /* Стилі для зображення солдата/добровольця */
+        #soldier-image {
+            width: 250px; /* Розмір зображення */
+            height: 350px;
+            background-color: #ccc; /* Тимчасовий фон */
+            margin-bottom: 20px;
+            border-radius: 10px;
+            object-fit: cover;
+            /* ЗАМІНИТИ НА РЕАЛЬНЕ ЗОБРАЖЕННЯ */
+            background-image: url('images/ukr-soldier.png'); 
+            background-size: cover;
+            background-position: top center;
+            /* Місце для прапора країни добровольця */
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #volunteer-flag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+            height: 30px;
+            background-color: transparent; /* Тимчасовий фон прапора */
+            border: 1px solid #fff;
+            display: none; /* Спочатку приховати, показати для добровольців */
+        }
+        
+        .timer {
+            font-size: 1.2em;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        /* Стилі для правої колонки */
+        .right-side {
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .victory-message {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Стилі для меню та мов */
+        .menu-bar {
+            background-color: #0d4a75; /* Темно-синій колір */
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .language-switcher button {
+            background-color: #ffcc00; /* Жовтий колір */
+            color: #0d4a75; /* Синій колір */
+            border: none;
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        /* Стилі для налаштування дати */
+        .settings-menu {
+            margin-right: 20px;
+        }
+
+        .settings-menu button {
+            background-color: #0d4a75; 
+            color: #fff;
+            border: 1px solid #ffcc00;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .date-input-area {
+            display: none; /* Спочатку приховано */
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="background-audio" loop autoplay>
+        <source src="audio/ukraine-anthem-instrumental.mp3" type="audio/mpeg"> Ваш браузер не підтримує аудіо елемент.
+    </audio>
+
+    <div class="menu-bar">
+        <div class="settings-menu">
+            <button onclick="toggleDateInput()">Налаштувати дату служби</button>
+            <div id="dateInputArea" class="date-input-area">
+                <label for="startDate">Дата початку служби (ДД/ММ/РРРР):</label><br>
+                <input type="text" id="startDate" placeholder="напр. 24/02/2022"><br>
+                <button onclick="setStartDate()">Зберегти</button>
+            </div>
+        </div>
+        
+        <div class="language-switcher">
+            <button onclick="changeLanguage('uk')">UA</button>
+            <button onclick="changeLanguage('en')">EN</button>
+            <button onclick="changeLanguage('pl')">PL</button>
+            </div>
+    </div>
+
+    <div class="content-container">
+        <div class="left-side">
+            <div id="soldier-image">
+                <div id="volunteer-flag"></div> </div>
+            
+            <h2>Служить вже:</h2>
+            <div id="service-timer" class="timer">
+                0 років, 0 місяців, 0 днів, 0 годин, 0 хвилин, 0 секунд
+            </div>
+        </div>
+
+        <div class="right-side">
+            <p id="victory-message" class="victory-message">
+                До Перемоги ще далеко, але вона обов'язково буде!
+            </p>
+            <p id="sub-message" style="margin-top: 20px;">
+                Слава Україні! Героям Слава!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Об'єкт з перекладами
+        const translations = {
+            'uk': {
+                'title': "До Перемоги!",
+                'service_label': "Служить вже:",
+                'config_button': "Налаштувати дату служби",
+                'date_prompt': "Дата початку служби (ДД/ММ/РРРР):",
+                'save_button': "Зберегти",
+                'victory_message': "До Перемоги ще далеко, але вона обов'язково буде!",
+                'sub_message': "Слава Україні! Героям Слава!",
+                'date_placeholder': "напр. 24/02/2022",
+                'format': (y, mo, d, h, mi, s) => `${y} років, ${mo} місяців, ${d} днів, ${h} годин, ${mi} хвилин, ${s} секунд`
+            },
+            'en': {
+                'title': "Towards Victory!",
+                'service_label': "Serving for:",
+                'config_button': "Set Service Start Date",
+                'date_prompt': "Service Start Date (DD/MM/YYYY):",
+                'save_button': "Save",
+                'victory_message': "Victory is still far, but it will certainly come!",
+                'sub_message': "Glory to Ukraine! Glory to the Heroes!",
+                'date_placeholder': "e.g. 02/24/2022",
+                'format': (y, mo, d, h, mi, s) => `${y} years, ${mo} months, ${d} days, ${h} hours, ${mi} minutes, ${s} seconds`
+            },
+            'pl': {
+                'title': "Do Zwycięstwa!",
+                'service_label': "Służy już:",
+                'config_button': "Ustaw datę rozpoczęcia służby",
+                'date_prompt': "Data rozpoczęcia służby (DD/MM/RRRR):",
+                'save_button': "Zapisz",
+                'victory_message': "Do Zwycięstwa jeszcze daleko, ale na pewno nastąpi!",
+                'sub_message': "Chwała Ukrainie! Chwała Bohaterom!",
+                'date_placeholder': "np. 24/02/2022",
+                'format': (y, mo, d, h, mi, s) => `${y} lat, ${mo} miesięcy, ${d} dni, ${h} godzin, ${mi} minut, ${s} sekund`
+            }
+            // ДОДАЙТЕ ІНШІ МОВИ ТУТ
+        };
+
+        let currentLang = 'uk';
+        
+        // Зберігаємо дату в локальному сховищі, або використовуємо дату початку повномасштабного вторгнення як дефолт
+        let startDate = localStorage.getItem('serviceStartDate') 
+            ? new Date(localStorage.getItem('serviceStartDate')) 
+            : new Date('2022-02-24T00:00:00'); // Дефолтна дата: 24 лютого 2022 року
+
+        // Функція для зміни мови
+        function changeLanguage(lang) {
+            if (!translations[lang]) return;
+            currentLang = lang;
+            const t = translations[lang];
+
+            document.title = t.title;
+            document.querySelector('h2').textContent = t.service_label;
+            document.querySelector('.settings-menu button').textContent = t.config_button;
+            document.querySelector('#dateInputArea label').textContent = t.date_prompt;
+            document.querySelector('#startDate').placeholder = t.date_placeholder;
+            document.querySelector('#dateInputArea button').textContent = t.save_button;
+            document.getElementById('victory-message').textContent = t.victory_message;
+            document.getElementById('sub-message').textContent = t.sub_message;
+            
+            // Оновлюємо лічильник після зміни мови
+            updateTimer();
+            
+            // Логіка зміни зображення та прапора добровольця 
+            // Тут потрібно додати логіку зміни #soldier-image та #volunteer-flag залежно від мови або іншого параметра
+            // Наприклад:
+            /*
+            if (lang !== 'uk') {
+                document.getElementById('soldier-image').style.backgroundImage = `url('images/${lang}-volunteer.png')`; 
+                document.getElementById('volunteer-flag').style.display = 'block'; 
+                // Встановіть реальний прапор у #volunteer-flag
+            } else {
+                document.getElementById('soldier-image').style.backgroundImage = `url('images/ukr-soldier.png')`;
+                document.getElementById('volunteer-flag').style.display = 'none';
+            }
+            */
+        }
+        
+        // Функція для оновлення лічильника
+        function updateTimer() {
+            const now = new Date();
+            let diff = now - startDate; // Різниця в мілісекундах
+
+            // Обчислення років, місяців, днів, годин, хвилин, секунд
+            
+            // Приблизний, але досить точний метод:
+            const totalSeconds = Math.floor(diff / 1000);
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const totalHours = Math.floor(totalMinutes / 60);
+            const totalDays = Math.floor(totalHours / 24);
+            
+            const years = Math.floor(totalDays / 365.25);
+            let remainingDays = totalDays - Math.floor(years * 365.25);
+            const months = Math.floor(remainingDays / 30.44); // Середній місяць
+            
+            const days = remainingDays - Math.floor(months * 30.44);
+            const hours = totalHours % 24;
+            const minutes = totalMinutes % 60;
+            const seconds = totalSeconds % 60;
+            
+            const format = translations[currentLang].format;
+            
+            document.getElementById('service-timer').textContent = format(
+                years, 
+                months, 
+                days, 
+                hours, 
+                minutes, 
+                seconds
+            );
+        }
+
+        // Функція для збереження дати
+        function setStartDate() {
+            const input = document.getElementById('startDate').value;
+            const parts = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            
+            if (parts) {
+                // Створюємо дату у форматі YYYY-MM-DD
+                const newDate = new Date(`${parts[3]}-${parts[2]}-${parts[1]}T00:00:00`);
+                
+                if (!isNaN(newDate)) {
+                    startDate = newDate;
+                    localStorage.setItem('serviceStartDate', newDate.toISOString());
+                    updateTimer(); // Оновлюємо лічильник одразу
+                    toggleDateInput(); // Приховуємо поле введення
+                    return;
+                }
+            }
+            alert("Невірний формат дати. Використовуйте ДД/ММ/РРРР.");
+        }
+        
+        // Функція для відображення/приховування поля введення дати
+        function toggleDateInput() {
+            const area = document.getElementById('dateInputArea');
+            area.style.display = area.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // Запускаємо оновлення лічильника кожну секунду
+        setInterval(updateTimer, 1000);
+
+        // Ініціалізація: встановлення мови та перше оновлення
+        changeLanguage(currentLang); 
+        updateTimer();
+    </script>
+
+</body>
+</html>
